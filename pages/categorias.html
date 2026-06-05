@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valorem | Categorias</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/categorias.css">
+</head>
+<body>
+    <div class="page-wrapper">
+        <header class="site-header">
+            <div class="brand">
+                <span class="brand-mark">V</span>
+                <div>
+                    <strong>Valorem</strong>
+                    <p>Gestão de fluxo financeiro</p>
+                </div>
+            </div>
+            <nav class="site-nav">
+                <a href="index.html">Dashboard</a>
+                <a href="cadastro.html">Cadastrar</a>
+                <a href="categorias.html" class="active">Categorias</a>
+                <a href="#" onclick="logout(); return false;" style="background: rgba(239, 68, 68, 0.08); color: #ef4444;">Sair</a>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <div class="container">
+                <header>
+                    <h1>Categorias</h1>
+                    <p>Organize suas despesas por categoria e adicione novas categorias conforme precisar.</p>
+                </header>
+
+                <div class="grid">
+                    <div class="card">
+                        <div class="form-group">
+                            <label for="novaCategoria">Nova categoria</label>
+                            <input id="novaCategoria" type="text" placeholder="Ex: Saúde, Lazer, Educação">
+                        </div>
+                        <button class="btn-add" onclick="adicionarCategoria()">
+                            <i data-lucide="plus-circle"></i> Adicionar categoria
+                        </button>
+                    </div>
+
+                    <div class="card">
+                        <h2 style="margin-bottom:16px;">Categorias existentes</h2>
+                        <div id="listaCategorias" class="category-list"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">© 2026 Valorem. Gestão financeira em um único painel.</footer>
+    </div>
+    <script src="../assets/js/categorias.js"></script>
+</body>
+</html>

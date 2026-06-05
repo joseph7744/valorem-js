@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valorem | Cadastrar Transação</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/cadastro.css">
+</head>
+<body>
+    <div class="page-wrapper">
+        <header class="site-header">
+            <div class="brand">
+                <span class="brand-mark">V</span>
+                <div>
+                    <strong>Valorem</strong>
+                    <p>Gestão de fluxo financeiro</p>
+                </div>
+            </div>
+            <nav class="site-nav">
+                <a href="index.html">Dashboard</a>
+                <a href="cadastro.html" class="active">Cadastrar</a>
+                <a href="categorias.html">Categorias</a>
+                <a href="#" onclick="logout(); return false;" style="background: rgba(239, 68, 68, 0.08); color: #ef4444;">Sair</a>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <div class="container">
+                <header>
+                    <h1>Valorem <span style="color: var(--primary)">.</span></h1>
+                    <p id="pageSubtitle" style="color: var(--text-muted); font-size: 0.9rem;">Cadastrar Nova Transação</p>
+                </header>
+
+                <div class="form-container">
+            <input type="hidden" id="despesaId">
+            
+            <div class="form-group">
+                <label for="descricao">Descrição</label>
+                <input type="text" id="descricao" placeholder="Ex: Aluguel, Conta de Luz, Supermercado, Salário">
+            </div>
+
+            <div class="form-group">
+                <label for="tipo">Tipo</label>
+                <select id="tipo">
+                    <option value="despesa">Despesa</option>
+                    <option value="receita">Receita</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="categoria">Categoria</label>
+                <select id="categoria"></select>
+            </div>
+
+            <div class="form-group">
+                <label for="valor">Valor (R$)</label>
+                <input type="number" id="valor" placeholder="0,00" step="0.01" min="0">
+            </div>
+
+            <div class="form-group">
+                <label for="data">Data de Vencimento</label>
+                <input type="date" id="data">
+            </div>
+
+            <button type="button" class="btn-salvar" onclick="salvar()">
+                <i data-lucide="check-circle"></i>
+                Salvar Transação
+            </button>
+
+            <button class="btn-voltar" onclick="window.location.href = 'index.html'">
+                <i data-lucide="arrow-left"></i>
+                Voltar ao Dashboard
+            </button>
+        </div>
+        </main>
+        <footer class="footer">© 2026 Valorem. Gestão financeira em um único painel.</footer>
+    </div>
+
+    <div id="toast" class="toast">
+        <i data-lucide="check"></i>
+        <span id="toastMessage">Transação salva com sucesso!</span>
+    </div>
+    <script src="../assets/js/cadastro.js"></script>
+    </script>
+</body>
+</html>

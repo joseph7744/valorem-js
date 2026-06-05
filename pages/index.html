@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valorem | Dashboard Analítico</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/index.css">
+</head>
+<body>
+    <div class="page-wrapper">
+        <header class="site-header">
+            <div class="brand">
+                <span class="brand-mark">V</span>
+                <div>
+                    <strong>Valorem</strong>
+                    <p>Dashboard de Controle de Gastos</p>
+                </div>
+            </div>
+            <nav class="site-nav">
+                <a href="index.html" class="active">Dashboard</a>
+                <a href="cadastro.html">Cadastrar</a>
+                <a href="categorias.html">Categorias</a>
+                <a href="#" onclick="logout(); return false;" class="btn-logout">Sair</a>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <section class="hero-panel">
+                <div>
+                    <h1>Visão Analítica de Gastos</h1>
+                    <p>Um painel construído para entregar indicadores e insights financeiros de forma clara, com foco em decisões rápidas.</p>
+                </div>
+                <a href="cadastro.html" class="btn-action">
+                    <i data-lucide="plus-circle"></i>
+                    Nova transação
+                </a>
+            </section>
+
+            <section class="kpis-grid" id="kpiCards">
+                <div class="metric-card loading-skeleton" data-loading></div>
+                <div class="metric-card loading-skeleton" data-loading></div>
+                <div class="metric-card loading-skeleton" data-loading></div>
+                <div class="metric-card loading-skeleton" data-loading></div>
+            </section>
+
+            <section class="analytics-grid">
+                <article class="chart-card area-chart-card">
+                    <div class="card-header">
+                        <div>
+                            <h2>Evolução de gastos</h2>
+                            <p>Comparativo diário do mês atual versus o mês anterior.</p>
+                        </div>
+                        <span class="badge badge-info">Trend</span>
+                    </div>
+                    <div class="chart-frame" id="spendingTrendChart">
+                        <div class="chart-loading">Carregando gráfico...</div>
+                    </div>
+                </article>
+
+                <article class="chart-card donut-chart-card">
+                    <div class="card-header">
+                        <div>
+                            <h2>Distribuição por categoria</h2>
+                            <p>Treinamento de gastos por categoria para o mês corrente.</p>
+                        </div>
+                        <span class="badge badge-warning">Insights</span>
+                    </div>
+                    <div class="chart-frame donut-frame" id="categoryDonutChart">
+                        <div class="chart-loading">Carregando gráfico...</div>
+                    </div>
+                    <div class="donut-legend" id="categoryLegend"></div>
+                </article>
+            </section>
+
+            <section class="alerts-panel" id="budgetAlerts">
+                <div class="alerts-header">
+                    <h2>Alertas de orçamento</h2>
+                    <p>Monitoramento de categorias que já atingiram 80% ou mais do limite estabelecido.</p>
+                </div>
+                <div class="alerts-list" id="alertsList">
+                    <div class="empty-state">Buscando alertas de orçamento...</div>
+                </div>
+            </section>
+
+            <section class="transactions-panel">
+                <div class="transactions-header">
+                    <div>
+                        <h2>Transações</h2>
+                        <p>Filtro rápido por categoria e período.</p>
+                    </div>
+                    <div class="transaction-filters">
+                        <select id="filterCategory" aria-label="Filtrar categoria"></select>
+                        <select id="filterPeriod" aria-label="Filtrar período"></select>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="transactions-table" id="transactionsTable">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Descrição</th>
+                                <th>Categoria</th>
+                                <th class="text-right">Valor</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="5" class="empty-state">Carregando transações...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">© 2026 Valorem. Painel BI para controle de gastos.</footer>
+    </div>
+
+    <script src="../assets/js/index.js"></script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valorem | Autenticação</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/login.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="brand-mark">V</div>
+                <h1>Valorem</h1>
+                <p>Gestão de fluxo financeiro</p>
+            </div>
+
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="loginTab">Login</button>
+                <button class="auth-tab" id="registerTab">Cadastro</button>
+            </div>
+
+            <!-- FORMULÁRIO DE LOGIN -->
+            <form id="loginForm" class="form-content active">
+                <div class="message" id="loginMessage"></div>
+                
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" placeholder="seu@email.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="loginSenha">Senha</label>
+                    <input type="password" id="loginSenha" placeholder="••••••••" required>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">
+                        <i data-lucide="log-in"></i> Entrar
+                    </button>
+                </div>
+            </form>
+
+            <!-- FORMULÁRIO DE CADASTRO -->
+            <form id="registerForm" class="form-content">
+                <div class="message" id="registerMessage"></div>
+                
+                <div class="form-group">
+                    <label for="registerNome">Nome</label>
+                    <input type="text" id="registerNome" placeholder="Seu nome completo" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="registerEmail">Email</label>
+                    <input type="email" id="registerEmail" placeholder="seu@email.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="registerSenha">Senha</label>
+                    <input type="password" id="registerSenha" placeholder="••••••••" required minlength="6">
+                </div>
+
+                <div class="form-group">
+                    <label for="registerSenhaConfirm">Confirmar Senha</label>
+                    <input type="password" id="registerSenhaConfirm" placeholder="••••••••" required minlength="6">
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">
+                        <i data-lucide="user-plus"></i> Cadastrar
+                    </button>
+                </div>
+            </form>
+
+            <div class="footer-text">
+                <p>© 2026 Valorem. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </div>
+    <script src="../assets/js/login.js"></script>
+</body>
+</html>
