@@ -1,13 +1,7 @@
 const USE_MOCK = false;
 const API_URL = 'http://localhost:3000/api/transacoes';
 const API_CATEGORIAS = 'http://localhost:3000/api/categorias';
-const CATEGORY_COLOR_PALETTE = ['#f97316', '#2563eb', '#8b5cf6', '#10b981', '#ef4444', '#f59e0b', '#0ea5e9', '#14b8a6', '#ec4899', '#7c3aed'];
 let toastTimeoutId = null;
-
-function getDefaultCategoryColor(id) {
-    const numericId = Number(id) || 0;
-    return CATEGORY_COLOR_PALETTE[numericId % CATEGORY_COLOR_PALETTE.length];
-}
 
 /**
  * Injeta dinamicamente o container de Toast no DOM para blindar contra elemento nulo.
@@ -145,17 +139,16 @@ function normalizeTransaction(raw) {
         tipo: raw.tipo || 'despesa',
         valor: Math.abs(Number(raw.valor || raw.amount || 0)),
         data: sanitizeDateString(raw.data || raw.data_formatada || raw.created_at || ''),
-        id_categoria: raw.id_categoria != null ? Number(raw.id_categoria) : null
+        id_categoria: raw.id_categoria || null
     };
 }
 
 function normalizeCategory(raw) {
-    const id_categoria = raw.id_categoria != null ? Number(raw.id_categoria) : Number(raw.id || 0);
     return {
-        id_categoria: Number.isNaN(id_categoria) ? null : id_categoria,
+        id_categoria: raw.id_categoria || raw.id || null,
         nome: raw.nome || raw.name || '',
         limite: Number(raw.limite || raw.limit || 0),
-        cor: raw.cor || raw.color || getDefaultCategoryColor(id_categoria)
+        cor: raw.cor || raw.color || '#64748b'
     };
 }
 
@@ -256,16 +249,16 @@ function isRevenueTransaction(item, categories) {
 function buildCategoryDistribution(transacoes, categories, monthKey) {
     const totals = categories
         .filter(category => {
+            // Excluir categorias que contenham "receita" ou "salário" no nome
             const lowerName = String(category.nome).toLowerCase();
             return !(lowerName.includes('receita') || lowerName.includes('salário') || lowerName.includes('salario'));
         })
         .map(category => {
-            const categoryId = Number(category.id_categoria);
             const total = transacoes
                 .filter(item => 
                     getMonthKey(item.data) === monthKey && 
                     item.tipo === 'despesa' && 
-                    Number(item.id_categoria) === categoryId
+                    item.id_categoria === category.id_categoria
                 )
                 .reduce((sum, item) => sum + Math.abs(Number(item.valor)), 0);
             return { ...category, total };
@@ -360,27 +353,26 @@ function renderKpiCards(transacoes, categories) {
             value: `${savingsRate.toFixed(1)}%`,
             description: `Percentual de economia mensal.`,
             badge: { text: allTimeTotals.saldo >= 0 ? 'Saudável' : 'Atenção', type: allTimeTotals.saldo >= 0 ? 'success' : 'danger' }
+        },
+        {
+            label: 'Previsão de gastos',
+            value: formatarValor(forecast),
+            description: 'Forecast linear ponderado pelo dia do mês atual.',
+            badge: { text: 'Forecast', type: 'warning' }
         }
     ];
 
-    const kpiContainer = document.getElementById('kpiCards');
-    if (kpiContainer) {
-        kpiContainer.style.display = 'grid';
-        kpiContainer.style.gridTemplateColumns = 'repeat(auto-fit, minmax(240px, 1fr))';
-        kpiContainer.style.justifyItems = 'stretch';
-        kpiContainer.style.gap = '18px';
-        kpiContainer.innerHTML = cards.map(card => `
-            <article class="metric-card">
-                <div class="metric-label">${card.label}</div>
-                <div class="metric-value">${card.value}</div>
-                <div class="metric-meta">
-                    <span>${card.description}</span>
-                    <span class="badge badge-${card.badge.type}">${card.badge.text}</span>
-                </div>
-                ${card.progress ? `<div class="budget-progress"><div class="budget-progress-bar"><div class="budget-progress-fill" style="width: ${card.progress}%"></div></div><span class="budget-progress-text">${card.progressLabel}</span></div>` : ''}
-            </article>
-        `).join('');
-    }
+    document.getElementById('kpiCards').innerHTML = cards.map(card => `
+        <article class="metric-card">
+            <div class="metric-label">${card.label}</div>
+            <div class="metric-value">${card.value}</div>
+            <div class="metric-meta">
+                <span>${card.description}</span>
+                <span class="badge badge-${card.badge.type}">${card.badge.text}</span>
+            </div>
+            ${card.progress ? `<div class="budget-progress"><div class="budget-progress-bar"><div class="budget-progress-fill" style="width: ${card.progress}%"></div></div><span class="budget-progress-text">${card.progressLabel}</span></div>` : ''}
+        </article>
+    `).join('');
 }
 
 function createTrendSvg(currentPoints, previousPoints, currentColor, previousColor, fillColor) {
@@ -398,27 +390,17 @@ function createTrendSvg(currentPoints, previousPoints, currentColor, previousCol
     );
     const stepX = (width - padding * 2) / Math.max(currentPoints.length - 1, 1);
 
-    const currentLinePath = currentPoints.reduce((path, point, index) => {
+    const currentLinePath = currentPoints.map((point, index) => {
         const x = padding + index * stepX;
         const y = height - padding - (point.value / maxValue) * (height - padding * 2);
-        if (index === 0) {
-            return `M ${x.toFixed(2)} ${y.toFixed(2)}`;
-        }
-        const prevPoint = currentPoints[index - 1];
-        const prevY = height - padding - (prevPoint.value / maxValue) * (height - padding * 2);
-        return `${path} L ${x.toFixed(2)} ${prevY.toFixed(2)} L ${x.toFixed(2)} ${y.toFixed(2)}`;
-    }, '');
+        return `${index === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`;
+    }).join(' ');
 
-    const previousLinePath = previousPoints.reduce((path, point, index) => {
+    const previousLinePath = previousPoints.map((point, index) => {
         const x = padding + index * stepX;
         const y = height - padding - (point.value / maxValue) * (height - padding * 2);
-        if (index === 0) {
-            return `M ${x.toFixed(2)} ${y.toFixed(2)}`;
-        }
-        const prevPoint = previousPoints[index - 1];
-        const prevY = height - padding - (prevPoint.value / maxValue) * (height - padding * 2);
-        return `${path} L ${x.toFixed(2)} ${prevY.toFixed(2)} L ${x.toFixed(2)} ${y.toFixed(2)}`;
-    }, '');
+        return `${index === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`;
+    }).join(' ');
 
     const areaPath = `${currentLinePath} L ${width - padding} ${height - padding} L ${padding} ${height - padding} Z`;
 
@@ -489,16 +471,16 @@ function renderDonutChart(transacoes, categories) {
         return;
     }
 
-    const gradient = distribution.reduce((segments, item) => {
+    const gradient = distribution.reduce((segments, item, index) => {
         const start = segments.offset;
-        const end = start + (item.total / totalSpend) * 100;
-        segments.css.push(`${item.cor} ${start}% ${end}%`);
-        segments.offset = end;
+        const size = (item.total / totalSpend) * 100;
+        segments.css += `${item.cor} ${start}% , ${item.cor} ${start + size}%${index < distribution.length - 1 ? ', ' : ''}`;
+        segments.offset += size;
         return segments;
-    }, { css: [], offset: 0 }).css.join(', ');
+    }, { css: '', offset: 0 }).css;
 
     chartContainer.innerHTML = `
-        <div class="donut-chart" role="img" aria-label="Distribuição de gastos por categoria (excluídas receitas)" style="background-image: conic-gradient(${gradient});">
+        <div class="donut-chart" role="img" aria-label="Distribuição de gastos por categoria (excluídas receitas)" style="background: conic-gradient(${gradient});">
             <div class="donut-center">
                 <strong>${formatarValor(totalSpend)}</strong>
                 Total

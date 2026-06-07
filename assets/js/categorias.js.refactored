@@ -140,14 +140,13 @@ window.addEventListener('load', async () => {
     lucide.createIcons();
 });
 
-async function logout() {
-    const confirmou = await mostrarConfirmacao('Deseja sair da sua conta?');
-    if (!confirmou) return;
-
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('userEmail');
-    window.location.href = 'login.html';
+function logout() {
+    if (confirm('Deseja sair da sua conta?')) {
+        localStorage.removeItem('userId');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('userEmail');
+        window.location.href = 'login.html';
+    }
 }
 
 /**

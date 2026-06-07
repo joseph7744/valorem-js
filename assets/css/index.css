@@ -662,3 +662,37 @@ button, select {
     padding: 40px;
     color: var(--text-muted);
 }
+
+/* --- COMPONENTES ACESSÓRIOS DE BI E INFRAESTRUTURA --- */
+.progress-container {
+    width: 100%;
+    background-color: var(--bg-secondary, #f0f2f5);
+    border-radius: 4px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 6px;
+    background-color: var(--accent-color, #4a90e2);
+    border-radius: 4px;
+    transition: width 0.4s ease;
+}
+
+/* Sistema Global de Notificações (Toast) */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 9999;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.toast.success { background-color: #2ecc71; }
+.toast.error { background-color: #e74c3c; }
+.toast.hidden { opacity: 0; transform: translateY(20px); pointer-events: none; }
+.toast.visible { opacity: 1; transform: translateY(0); }
