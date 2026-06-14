@@ -155,10 +155,6 @@ const checkAuth = (req, res, next) => {
 // ============= INICIALIZAÇÃO DO BANCO =============
 sequelize.sync({ force: false }).then(async () => {
   try {
-    // Criar view
-    await sequelize.query(`
-      DROP VIEW IF EXISTS vw_extrato_detalhado;
-    `).catch(() => {});
 
     await sequelize.query(`
       CREATE VIEW IF NOT EXISTS vw_extrato_detalhado AS
@@ -182,8 +178,6 @@ sequelize.sync({ force: false }).then(async () => {
       INNER JOIN Usuario u ON t.id_usuario = u.id_usuario
     `);
 
-    // Criar trigger
-    await sequelize.query(`DROP TRIGGER IF EXISTS trg_alerta_despesa_alta;`).catch(() => {});
 
     await sequelize.query(`
       CREATE TRIGGER IF NOT EXISTS trg_alerta_despesa_alta
@@ -332,27 +326,30 @@ app.delete('/api/categorias/:id', checkAuth, async (req, res) => {
 app.get('/api/transacoes', checkAuth, async (req, res) => {
   try {
     const [results] = await sequelize.query(
-      `SELECT
-          t.id,
-          t.id_usuario,
-          t.id_categoria,
-          u.nome AS usuario,
-          strftime('%d/%m/%Y', t.data) AS data_formatada,
-          t.descricao,
-          COALESCE(c.nome, 'Sem categoria') AS categoria,
-          t.tipo,
-          CASE
-            WHEN t.tipo = 'despesa' THEN t.valor * -1
-            ELSE t.valor
-          END AS valor_contabil,
-          t.valor,
-          t.data
-        FROM Transacao t
-        LEFT JOIN Categoria c ON t.id_categoria = c.id_categoria
-        LEFT JOIN Usuario u ON t.id_usuario = u.id_usuario
-        WHERE t.id_usuario = ?
-        ORDER BY t.data DESC`,
+      `SELECT *
+       FROM vw_extrato_detalhado
+       WHERE id_usuario = ?
+       ORDER BY data DESC`,
       { replacements: [req.userId] }
+    );
+    res.json(results);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// LISTAR LOGS DA AUDITORIA DE DESPESAS ALTAS
+app.get('/api/auditoria', checkAuth, async (req, res) => {
+  try {
+    const results = await sequelize.query(
+      `SELECT id_log, mensagem, data_log
+       FROM Auditoria_Valorem
+       WHERE mensagem LIKE :pattern
+       ORDER BY data_log DESC`,
+      { 
+        replacements: { pattern: `%Usuário ID: ${req.userId} |%` },
+        type: Sequelize.QueryTypes.SELECT
+      }
     );
     res.json(results);
   } catch (error) {
@@ -373,6 +370,20 @@ app.get('/api/transacoes/saldo', checkAuth, async (req, res) => {
       WHERE id_usuario = ?
     `, { replacements: [req.userId] });
     res.json(results[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// OBTER TRANSAÇÃO ESPECÍFICA
+app.get('/api/transacoes/:id', checkAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const transacao = await Transacao.findByPk(id);
+    if (!transacao || transacao.id_usuario !== req.userId) {
+      return res.status(404).json({ error: 'Transação não encontrada' });
+    }
+    res.json(transacao);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -444,7 +455,9 @@ app.delete('/api/transacoes/:id', checkAuth, async (req, res) => {
       return res.status(403).json({ error: 'Não autorizado' });
     }
 
-    await Transacao.destroy({ where: { id } });
+    await sequelize.query('DELETE FROM Transacao WHERE id = ?', {
+      replacements: [id]
+    });
     res.json({ mensagem: 'Transação excluída com sucesso' });
   } catch (error) {
     res.status(500).json({ error: error.message });

@@ -1,8 +1,9 @@
-const USE_MOCK = false;
 const API_URL = 'http://localhost:3000/api/transacoes';
 const API_CATEGORIAS = 'http://localhost:3000/api/categorias';
+const API_AUDIT = 'http://localhost:3000/api/auditoria';
 const CATEGORY_COLOR_PALETTE = ['#f97316', '#2563eb', '#8b5cf6', '#10b981', '#ef4444', '#f59e0b', '#0ea5e9', '#14b8a6', '#ec4899', '#7c3aed'];
 let toastTimeoutId = null;
+let CURRENT_AUDIT_LOGS = [];
 
 function getDefaultCategoryColor(id) {
     const numericId = Number(id) || 0;
@@ -60,9 +61,30 @@ async function fetchDataFromApi() {
         const transacoes = await resTrans.json();
         return { categories, transacoes };
     } catch (err) {
-        console.warn('Falha ao buscar dados da API, usando mock:', err);
-        return null;
+        console.error('Falha ao buscar dados da API:', err);
+        throw err;
     }
+}
+
+async function fetchAuditLogs() {
+    const userId = localStorage.getItem('userId');
+    const headers = userId ? { 'x-user-id': userId } : {};
+    const res = await fetch(API_AUDIT, { headers });
+    if (!res.ok) throw new Error('Erro ao buscar logs de auditoria');
+    return await res.json();
+}
+
+function formatAuditDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return dateString;
+    return date.toLocaleString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
 }
 
 function sanitizeDateString(value) {
@@ -92,29 +114,6 @@ function formatarData(dataString) {
     if (!year || !month || !day) return '-';
     return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
 }
-
-const MOCK_CATEGORIES = [
-    { id_categoria: 1, nome: 'Alimentação', limite: 1200, cor: '#f97316' },
-    { id_categoria: 2, nome: 'Transporte', limite: 700, cor: '#2563eb' },
-    { id_categoria: 3, nome: 'Lazer', limite: 450, cor: '#8b5cf6' },
-    { id_categoria: 4, nome: 'Contas Fixas', limite: 2200, cor: '#10b981' },
-    { id_categoria: 5, nome: 'Saúde', limite: 550, cor: '#ef4444' }
-];
-
-const MOCK_TRANSACOES = [
-    { id: 101, descricao: 'Supermercado', tipo: 'despesa', valor: 320.50, data: '2026-06-02', id_categoria: 1 },
-    { id: 102, descricao: 'Assinatura streaming', tipo: 'despesa', valor: 49.90, data: '2026-06-03', id_categoria: 3 },
-    { id: 103, descricao: 'Pagamento energia', tipo: 'despesa', valor: 180.35, data: '2026-06-05', id_categoria: 4 },
-    { id: 104, descricao: 'Jantar executivo', tipo: 'despesa', valor: 230.00, data: '2026-06-07', id_categoria: 1 },
-    { id: 105, descricao: 'Ticket transporte', tipo: 'despesa', valor: 120.00, data: '2026-06-08', id_categoria: 2 },
-    { id: 106, descricao: 'Consulta médica', tipo: 'despesa', valor: 285.90, data: '2026-06-09', id_categoria: 5 },
-    { id: 107, descricao: 'Venda de ativos', tipo: 'receita', valor: 950.00, data: '2026-06-06', id_categoria: null },
-    { id: 108, descricao: 'Freelance UX', tipo: 'receita', valor: 1400.00, data: '2026-05-28', id_categoria: null },
-    { id: 109, descricao: 'Aluguel', tipo: 'despesa', valor: 1800.00, data: '2026-06-01', id_categoria: 4 },
-    { id: 110, descricao: 'Lanche rápido', tipo: 'despesa', valor: 38.70, data: '2026-06-10', id_categoria: 1 },
-    { id: 111, descricao: 'Cinema', tipo: 'despesa', valor: 78.00, data: '2026-05-20', id_categoria: 3 },
-    { id: 112, descricao: 'Gasolina', tipo: 'despesa', valor: 260.00, data: '2026-06-04', id_categoria: 2 }
-];
 
 // Runtime state
 let CURRENT_TRANSACTIONS = [];
@@ -519,6 +518,8 @@ function renderAlerts(transacoes, categories) {
     const alerts = buildBudgetAlerts(transacoes, categories, currentMonth);
     const alertsList = document.getElementById('alertsList');
 
+    if (!alertsList) return;
+
     if (!alerts.length) {
         alertsList.innerHTML = '<div class="empty-state">Nenhuma categoria atingiu 80% do limite.</div>';
         return;
@@ -626,30 +627,12 @@ function logout() {
 function handleEdit(id) {
     (async () => {
         try {
-            if (!USE_MOCK) {
-                const userId = localStorage.getItem('userId');
-                const res = await fetch(`${API_URL}/${id}`, { headers: userId ? { 'x-user-id': userId } : {} });
-                if (!res.ok) throw new Error('Falha ao buscar transação para edição');
-                const tx = await res.json();
-                const payload = normalizeTransaction(tx);
-                localStorage.setItem('editarTransacao', JSON.stringify(payload));
-                window.location.href = 'cadastro.html';
-                return;
-            }
-
-            const txLocal = CURRENT_TRANSACTIONS.find(t => t.id === id) || null;
-            if (!txLocal) {
-                mostrarToast('Transação não encontrada para edição', true);
-                return;
-            }
-            localStorage.setItem('editarTransacao', JSON.stringify({
-                id: txLocal.id,
-                descricao: txLocal.descricao,
-                valor: txLocal.valor,
-                data: txLocal.data,
-                tipo: txLocal.tipo,
-                id_categoria: txLocal.id_categoria
-            }));
+            const userId = localStorage.getItem('userId');
+            const res = await fetch(`${API_URL}/${id}`, { headers: userId ? { 'x-user-id': userId } : {} });
+            if (!res.ok) throw new Error('Falha ao buscar transação para edição');
+            const tx = await res.json();
+            const payload = normalizeTransaction(tx);
+            localStorage.setItem('editarTransacao', JSON.stringify(payload));
             window.location.href = 'cadastro.html';
         } catch (err) {
             console.error('Erro ao preparar edição:', err);
@@ -667,49 +650,64 @@ async function handleDelete(id) {
         if (res.ok) {
             const apiResult = await fetchDataFromApi();
             if (apiResult) {
-                CURRENT_CATEGORIES = apiResult.categories;
-                CURRENT_TRANSACTIONS = apiResult.transacoes;
+                CURRENT_CATEGORIES = apiResult.categories.map(normalizeCategory);
+                CURRENT_TRANSACTIONS = apiResult.transacoes.map(normalizeTransaction);
                 renderKpiCards(CURRENT_TRANSACTIONS, CURRENT_CATEGORIES);
                 renderTrendChart(CURRENT_TRANSACTIONS);
                 renderDonutChart(CURRENT_TRANSACTIONS, CURRENT_CATEGORIES);
                 renderAlerts(CURRENT_TRANSACTIONS, CURRENT_CATEGORIES);
                 renderTransactionsTable(CURRENT_TRANSACTIONS, CURRENT_CATEGORIES);
+                mostrarToast('Transação excluída com sucesso!');
                 return;
             }
         } else {
             throw new Error('API delete falhou');
         }
     } catch (err) {
-        console.warn('Exclusão via API falhou, aplicando fallback local:', err);
-        CURRENT_TRANSACTIONS = CURRENT_TRANSACTIONS.filter(t => t.id !== id);
-        renderKpiCards(CURRENT_TRANSACTIONS, CURRENT_CATEGORIES);
-        renderTrendChart(CURRENT_TRANSACTIONS);
-        renderDonutChart(CURRENT_TRANSACTIONS, CURRENT_CATEGORIES);
-        renderAlerts(CURRENT_TRANSACTIONS, CURRENT_CATEGORIES);
-        renderTransactionsTable(CURRENT_TRANSACTIONS, CURRENT_CATEGORIES);
+        console.error('Exclusão via API falhou:', err);
+        mostrarToast('Não foi possível excluir a transação.', true);
     }
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
     const userId = localStorage.getItem('userId');
-    if (!userId && !USE_MOCK) {
+    if (!userId) {
         window.location.href = 'login.html';
         return;
     }
 
-    let categories = MOCK_CATEGORIES;
-    let transacoes = MOCK_TRANSACOES;
-    const apiResult = await fetchDataFromApi();
-    if (apiResult && Array.isArray(apiResult.categories) && Array.isArray(apiResult.transacoes)) {
-        categories = apiResult.categories.map(normalizeCategory);
-        transacoes = apiResult.transacoes.map(normalizeTransaction);
-        console.log('Dashboard BI carregado com dados da API');
-    } else {
-        console.log('Usando dados mock para o dashboard');
+    let categories = [];
+    let transacoes = [];
+    let auditLogs = [];
+    
+    try {
+        const apiResult = await fetchDataFromApi();
+        if (apiResult && Array.isArray(apiResult.categories) && Array.isArray(apiResult.transacoes)) {
+            categories = apiResult.categories.map(normalizeCategory);
+            transacoes = apiResult.transacoes.map(normalizeTransaction);
+            console.log('Dashboard BI carregado com dados da API');
+        }
+    } catch (err) {
+        console.error('Erro ao carregar dados do dashboard:', err);
+        const fallback = document.createElement('div');
+        fallback.className = 'empty-state';
+        fallback.textContent = 'Erro de conexão com o servidor. Verifique a API.';
+        document.getElementById('app')?.appendChild(fallback) || document.body.appendChild(fallback);
+        return;
+    }
+
+    try {
+        const apiAudit = await fetchAuditLogs();
+        if (Array.isArray(apiAudit)) {
+            auditLogs = apiAudit;
+        }
+    } catch (err) {
+        console.warn('Falha ao carregar logs de auditoria:', err);
     }
 
     CURRENT_CATEGORIES = categories;
     CURRENT_TRANSACTIONS = transacoes;
+    CURRENT_AUDIT_LOGS = auditLogs;
 
     populateFilterOptions(categories);
     document.getElementById('filterCategory').addEventListener('change', () => renderTransactionsTable(transacoes, categories));
@@ -720,6 +718,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         renderTrendChart(transacoes);
         renderDonutChart(transacoes, categories);
         renderAlerts(transacoes, categories);
+        renderAuditLogs(auditLogs);
         renderTransactionsTable(transacoes, categories);
     } catch (error) {
         console.error('Dashboard load failed:', error);
@@ -730,3 +729,20 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
     window.lucide?.createIcons?.();
 });
+
+function renderAuditLogs(logs) {
+    const container = document.getElementById('auditLogsList');
+    if (!container) return;
+    if (!Array.isArray(logs) || logs.length === 0) {
+        container.innerHTML = '<div class="empty-state">Nenhum alerta de auditoria encontrado.</div>';
+        return;
+    }
+    container.innerHTML = logs.map(log => `
+        <div class="audit-card">
+            <div class="audit-card-header">
+                <span>${formatAuditDate(log.data_log)}</span>
+            </div>
+            <p>${log.mensagem}</p>
+        </div>
+    `).join('');
+}
