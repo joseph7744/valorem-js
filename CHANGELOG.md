@@ -43,14 +43,14 @@
 - Criação automática de TRIGGER `trg_alerta_despesa_alta`
 - Migração de banco de `transacoes.sqlite` para `valorem.sqlite`
 
-#### index.html (Dashboard)
+#### dashboard.html (Dashboard)
 - Verificação obrigatória de autenticação ao carregar
 - Carregamento de categorias da API
 - Atualização de filtros para usar IDs de categoria
 - Exibição de nome de categoria ao invés de valor armazenado
 - Adição de botão de logout na navegação
 - Header `x-user-id` em todas as requisições
-- Redirecionamento para login se não autenticado
+- Redirecionamento para index.html se não autenticado
 - Ordenação de transações por data (mais recentes primeiro)
 
 #### cadastro.html (Criar/Editar Transação)
@@ -74,12 +74,12 @@
 
 ### 🆕 Novos Arquivos
 
-#### login.html
+#### index.html
 - Página de autenticação
 - Abas para Login e Cadastro
 - Validação de formulários
 - Armazenamento de dados de usuário em localStorage
-- Redirecionamento automático para dashboard se autenticado
+- Redirecionamento automático para dashboard.html se autenticado
 - Interface responsiva e moderna
 
 ### 🗑️ Removidos

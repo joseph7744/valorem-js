@@ -8,14 +8,14 @@
 - ✅ Adicionada VIEW `vw_extrato_detalhado` para consultas detalhadas
 - ✅ Criado TRIGGER `trg_alerta_despesa_alta` para monitorar despesas acima de R$ 1.000
 
-### 2. **Autenticação (login.html - NOVO)**
+### 2. **Autenticação (index.html - NOVO)**
 - ✅ Página de login e cadastro (abas alternáveis)
 - ✅ Cadastro de novos usuários com validação de email único
 - ✅ Login com email e senha
 - ✅ Armazenamento seguro do ID do usuário em localStorage
 - ✅ Redirecionamento automático para dashboard quando autenticado
 
-### 3. **Dashboard (index.html)**
+### 3. **Dashboard (dashboard.html)**
 - ✅ Verificação obrigatória de autenticação
 - ✅ Carregamento de categorias da API
 - ✅ Filtros por categoria e mês funcionais
@@ -52,7 +52,7 @@ node app.js
 O servidor rodará em `http://localhost:3000`
 
 ### Acessar a Aplicação
-1. Abra `http://localhost:3000/login.html` no navegador
+1. Abra `http://localhost:3000/index.html` no navegador
 2. Escolha entre **Login** ou **Cadastro**
 3. Para novo usuário: Preencha nome, email e senha (mín. 6 caracteres)
 4. Para usuário existente: Use email e senha cadastrados
@@ -181,7 +181,7 @@ O banco é criado e sincronizado automaticamente ao iniciar o servidor.
 4. Cadastre uma transação com a categoria criada
 5. Edite e delete a transação
 6. Verifique os filtros e totais no dashboard
-7. Faça logout e tente acessar diretamente uma página (deve redirecionar para login)
+7. Faça logout e tente acessar diretamente uma página (deve redirecionar para a página de login)
 
 ## 📞 Suporte
 

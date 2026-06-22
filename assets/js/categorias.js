@@ -131,7 +131,7 @@ function mostrarConfirmacao(mensagem) {
 window.addEventListener('load', async () => {
     const userId = localStorage.getItem('userId');
     if (!userId) {
-        window.location.href = 'login.html';
+        window.location.href = '../index.html';
         return;
     }
     
@@ -147,7 +147,7 @@ async function logout() {
     localStorage.removeItem('userId');
     localStorage.removeItem('userName');
     localStorage.removeItem('userEmail');
-    window.location.href = 'login.html';
+    window.location.href = '../index.html';
 }
 
 /**

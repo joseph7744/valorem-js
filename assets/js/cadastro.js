@@ -44,7 +44,7 @@ function mostrarToast(mensagem, isError = false) {
 window.addEventListener('load', async () => {
     const userId = localStorage.getItem('userId');
     if (!userId) {
-        window.location.href = 'login.html';
+        window.location.href = '../index.html';
         return;
     }
 
@@ -72,7 +72,7 @@ function logout() {
         localStorage.removeItem('userId');
         localStorage.removeItem('userName');
         localStorage.removeItem('userEmail');
-        window.location.href = 'login.html';
+        window.location.href = '../index.html';
     }
 }
 
@@ -189,7 +189,7 @@ async function salvar() {
         mostrarToast(mensagem);
         
         setTimeout(() => {
-            window.location.href = 'index.html';
+            window.location.href = 'dashboard.html'; // Caminho já está correto, mas a lógica no HTML foi removida.
         }, 1500);
     } catch (error) {
         console.error('Erro ao salvar:', error);

@@ -7,6 +7,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Servir arquivos estáticos (HTML, CSS, JS)
+app.use(express.static(__dirname));
+app.use('/pages', express.static(__dirname + '/pages'));
+
 const sequelize = new Sequelize({ dialect: 'sqlite', storage: './valorem.sqlite' });
 
 // ============= MODELOS =============
